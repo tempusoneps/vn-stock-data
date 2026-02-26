@@ -32,7 +32,7 @@ def labeling_data(df):
             longable = False
         #
         if longable and shortable:
-            new_entry_allowed.append('both')
+            new_entry_allowed.append('-')
         elif longable:
             new_entry_allowed.append('long')
         elif shortable:

@@ -6,6 +6,55 @@ import numpy as np
 import pandas_ta as ta
 
 
+def get_couple_cs_1st_cond(r):
+    cond = ''
+    if r['Open'] > r['Close'] >= r['Low'] + 0.1:
+        # Do va co bong nen duoi
+        cond = 'S'
+    elif r['Open'] < r['Close'] <= r['High'] - 0.1:
+        # Xanh va co bong nen tren
+        cond = 'L'
+    return cond
+
+
+def get_couple_cs_2rd_cond(r):
+    cond = ''
+    if r['Open'] > r['Close'] == r['Low'] and r['Low'] < r['prev_Low']:
+        # Do va khong co bong nen duoi
+        cond = 'S'
+    elif r['Open'] < r['Close'] == r['High'] and r['High'] > r['prev_High']:
+        # Xanh va khong co bong nen tren
+        cond = 'L'
+    return cond
+    
+
+def get_couple_candleticks_signal(r):
+    signal = ''
+    if r['couple_cs_1st_cond'] == 'S' and r['couple_cs_2rd_cond'] == 'S':
+        signal = 'short'
+    elif r['couple_cs_1st_cond'] == 'L' and r['couple_cs_2rd_cond'] == 'L':
+        signal = 'long'
+    return signal
+
+
+def get_ema20_250_cross_signal(r):
+    signal = ''
+    if r['ema20'] > r['ema250'] and r['prev_ema20'] <= r['prev_ema250']:
+        signal = 'long'
+    elif r['ema20'] < r['ema250'] and r['prev_ema20'] >= r['prev_ema250']:
+        signal = 'short'
+    return signal
+
+
+def get_mfm(r):
+    if r['High'] == r['Low']:
+        return 0
+    direction = 1 if r['Close'] > r['Open'] else (-1 if r['Close'] < r['Open'] else 0)
+    MFM = ((r['Close'] - r['Low']) - (r['High'] - r['Close'])) / (r['High'] - r['Low'])
+    MoneyFlow = MFM * r['Volume'] * direction
+    return MoneyFlow
+
+
 def feature_engineering(df):
     tmp_data = df.copy()
     tmp_data['DayHigh'] = tmp_data['High']
@@ -26,48 +75,36 @@ def feature_engineering(df):
     data = data.assign(time_d=pd.PeriodIndex(data.index, freq='1D').to_timestamp())
     #
     merged_data = pd.merge(data, daily_data, left_on="time_d", right_index=True, how="left")
+    #
     merged_data['hour'] = merged_data.index.hour
     merged_data['minute'] = merged_data.index.minute
-    return merged_data
+    merged_data["ema20"] = ta.ema(merged_data["Close"], length=20)
+    merged_data["ema250"] = ta.ema(merged_data["Close"], length=250)
+    merged_data['upper_shadow'] = merged_data.apply(lambda r: r["High"] - max(r["Open"], r["Close"]), axis=1)
+    merged_data['RSI20'] = ta.rsi(merged_data["Close"], length=20)
+    merged_data['RSI10'] = ta.rsi(merged_data["Close"], length=10)
+    merged_data['avg_Volume'] = merged_data['Volume'].rolling(20).mean()
+    merged_data["MB"] = merged_data["Close"].rolling(20).mean()
+    merged_data["STD"] = merged_data["Close"].rolling(20).std()
+    merged_data["UB"] = merged_data["MB"] + 1.5 * merged_data["STD"]
+    merged_data["MF"] = merged_data.apply(lambda r: get_mfm(r), axis=1)
+    merged_data["MF3d_direction"] = merged_data["MF"].rolling(150).sum()
+    merged_data["MF5d_direction"] = merged_data["MF"].rolling(250).sum()
+    # shift data
+    merged_data['prev_High'] = merged_data['High'].shift(1)
+    merged_data['prev_Low'] = merged_data['Low'].shift(1)
+    merged_data['prev_Close'] = merged_data['Close'].shift(1)
+    merged_data['prev_Open'] = merged_data['Open'].shift(1)
+    merged_data['prev_Vol'] = merged_data['Volume'].shift(1)
+    merged_data['prev_upper_shadow'] = merged_data['upper_shadow'].shift(1)
+    merged_data['prev_avg_Volume'] = merged_data['avg_Volume'].shift(1)
+    merged_data['prev_ema20'] = merged_data['ema20'].shift(1)
+    merged_data['prev_ema250'] = merged_data['ema250'].shift(1)
+    # signals
+    merged_data['couple_cs_1st_cond'] = merged_data.apply(get_couple_cs_1st_cond, axis=1)
+    merged_data['couple_cs_2rd_cond'] = merged_data.apply(get_couple_cs_2rd_cond, axis=1)
+    merged_data['couple_cs_signal'] = merged_data.apply(get_couple_candleticks_signal, axis=1)
+    merged_data["ema20_250_cross_signal"] = merged_data.apply(get_ema20_250_cross_signal, axis=1)
     #
-    # merged_data["ema20"] = ta.ema(merged_data["Close"], length=20)
-    # merged_data["ema250"] = ta.ema(merged_data["Close"], length=250)
-    # merged_data["ema20_cross_ema250"] = ((merged_data["ema20"] > merged_data["ema250"]) & (merged_data["ema20"].shift(1) <= merged_data["ema250"].shift(1)) | (merged_data["ema20"] < merged_data["ema250"]) & (merged_data["ema20"].shift(1) >= merged_data["ema250"].shift(1)))
-    # merged_data['prev_High'] = merged_data['High'].shift(1)
-    # merged_data['prev_Low'] = merged_data['Low'].shift(1)
-    # merged_data['prev_Close'] = merged_data['Close'].shift(1)
-    # merged_data['prev_Open'] = merged_data['Open'].shift(1)
-    # merged_data['prev_Vol'] = merged_data['Volume'].shift(1)
-    # merged_data['is_max'] = merged_data.apply(lambda r: 1 if r["High"] == r["DayHigh"] else 0, axis=1)
-    # ana_data = merged_data.dropna()
-    # ana_data['upper_shadow'] = ana_data.apply(lambda r: r["High"] - max(r["Open"], r["Close"]), axis=1)
-    # ana_data['prev_upper_shadow'] = ana_data['upper_shadow'].shift(1)
-    # ana_data['ibs'] = ana_data.apply(
-    #     lambda r: 0 if r["High"] == r["Low"] else (r["Close"] - r["Low"]) / (r["High"] - r["Low"]), axis=1)
-    # ana_data['prev_ibs'] = ana_data['ibs'].shift(1)
-    # ana_data['RSI20'] = ta.rsi(ana_data["Close"], length=20)
-    # ana_data['RSI10'] = ta.rsi(ana_data["Close"], length=10)
-    # ana_data['avg_Volume'] = ana_data['Volume'].rolling(20).mean()
-    # ana_data['prev_avg_Volume'] = ana_data['avg_Volume'].shift(1)
-    # ana_data["MB"] = ana_data["Close"].rolling(20).mean()
-    # ana_data["STD"] = ana_data["Close"].rolling(20).std()
-    # ana_data["UB"] = ana_data["MB"] + 1.5 * ana_data["STD"]
-    # #
-    # ana_data['upper_wick_group'] = ana_data.apply(
-    #     lambda r: 1 if r["upper_shadow"] > r["prev_upper_shadow"] else -1, axis=1)
-    # ana_data["ibs_vol_group"] = ana_data.apply(lambda r: get_ibs_vol_group(r), axis=1)
-    # ana_data['rsi_area'] = ana_data.apply(
-    #     lambda r: 1 if r["RSI20"] > 55 else (0.33 if r["RSI20"] < 45 else 0.66), axis=1)
-    # ana_data['higher_high_lower_vol'] = ana_data.apply(
-    #     lambda r: 1 if (r["High"] > r["prev_High"] and r["Volume"] < r["prev_Vol"]) else -1, axis=1)
-    # ana_data['Volume_higher_avg'] = ana_data.apply(lambda r: 1 if r["Volume"] > r["avg_Volume"] else -1, axis=1)
-    # ana_data['Volume_vs_prev_Vol'] = ana_data.apply(lambda r: 1 if r["Volume"] > r["prev_Vol"] else -1, axis=1)
-    # ana_data['Volume_avg_group'] = ana_data.apply(
-    #     lambda r: 1 if r["avg_Volume"] > r["prev_avg_Volume"] else -1, axis=1)
-    # ana_data['close_price_group'] = ana_data.apply(lambda r: get_close_price_position(r), axis=1)
-    # ana_data['open_price_group'] = ana_data.apply(lambda r: get_open_price_position(r), axis=1)
-    # ana_data['High_position'] = ana_data.apply(lambda r: 1 if r["High"] > r["UB"] else -1, axis=1)
-    # ana_data["BB_rejection"] = ana_data.apply(lambda r: 1 if r["Close"] < r["UB"] else -1, axis=1)
-    # ana_data.dropna(inplace=True)
-    # return ana_data
+    return merged_data
     

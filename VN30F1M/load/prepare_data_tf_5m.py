@@ -14,7 +14,7 @@ if __name__ == '__main__':
     csv_ready_file = str(DATA_READY_DIR) + '/VN30F1M_5m_ready.csv'
     is_file = os.path.isfile(ohlcv_file)
     if is_file:
-        ohlcv_data = pd.read_csv(ohlcv_file, index_col='Date', parse_dates=True)
+        ohlcv_data = pd.read_csv(ohlcv_file, index_col='Date', parse_dates=True).tail(2000)
         is_validate, _ = validate_ohlcv_dataset(ohlcv_data)
         if is_validate:
             clean_data = clean_ohlcv(ohlcv_data)
