@@ -78,9 +78,10 @@ def feature_engineering(df):
     #
     merged_data['hour'] = merged_data.index.hour
     merged_data['minute'] = merged_data.index.minute
+    merged_data["session_progress"] = ((merged_data.hour * 60 + merged_data.minute) - 540) / 240
     merged_data["ema20"] = ta.ema(merged_data["Close"], length=20)
     merged_data["ema250"] = ta.ema(merged_data["Close"], length=250)
-    merged_data['upper_shadow'] = merged_data.apply(lambda r: r["High"] - max(r["Open"], r["Close"]), axis=1)
+    merged_data['upper_wick'] = merged_data.apply(lambda r: r["High"] - max(r["Open"], r["Close"]), axis=1)
     merged_data['RSI20'] = ta.rsi(merged_data["Close"], length=20)
     merged_data['RSI10'] = ta.rsi(merged_data["Close"], length=10)
     merged_data['avg_Volume'] = merged_data['Volume'].rolling(20).mean()
@@ -90,16 +91,18 @@ def feature_engineering(df):
     merged_data["MF"] = merged_data.apply(lambda r: get_mfm(r), axis=1)
     merged_data["MF3d_direction"] = merged_data["MF"].rolling(150).sum()
     merged_data["MF5d_direction"] = merged_data["MF"].rolling(250).sum()
+    merged_data['HL_range'] = merged_data.apply(lambda r: (r["High"] - r["Low"]) * 1000 / r["Close"], axis=1)
     # shift data
     merged_data['prev_High'] = merged_data['High'].shift(1)
     merged_data['prev_Low'] = merged_data['Low'].shift(1)
     merged_data['prev_Close'] = merged_data['Close'].shift(1)
     merged_data['prev_Open'] = merged_data['Open'].shift(1)
     merged_data['prev_Vol'] = merged_data['Volume'].shift(1)
-    merged_data['prev_upper_shadow'] = merged_data['upper_shadow'].shift(1)
+    merged_data['prev_upper_wick'] = merged_data['upper_wick'].shift(1)
     merged_data['prev_avg_Volume'] = merged_data['avg_Volume'].shift(1)
     merged_data['prev_ema20'] = merged_data['ema20'].shift(1)
     merged_data['prev_ema250'] = merged_data['ema250'].shift(1)
+    merged_data['volume_z'] = (merged_data['Volume'] - merged_data['Volume'].rolling(20).mean()) / merged_data['Volume'].rolling(20).std()
     # signals
     merged_data['couple_cs_1st_cond'] = merged_data.apply(get_couple_cs_1st_cond, axis=1)
     merged_data['couple_cs_2rd_cond'] = merged_data.apply(get_couple_cs_2rd_cond, axis=1)

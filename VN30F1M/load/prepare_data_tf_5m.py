@@ -16,7 +16,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "--limit",
         type=int,
-        default=2000,
+        default=0,
         help="Number of last rows to load"
     )
 
@@ -38,7 +38,9 @@ if __name__ == '__main__':
             ohlcv_file,
             index_col='Date',
             parse_dates=True
-        ).tail(args.limit)
+        )
+        if args.limit:
+            ohlcv_data = ohlcv_data.tail(args.limit)
 
         is_validate, _ = validate_ohlcv_dataset(ohlcv_data)
 
