@@ -10,8 +10,8 @@ from VN30F1M.transform.func_preprocessing import preprocessing_data
 from VN30F1M.transform.func_labeling import labeling_data
 
 if __name__ == '__main__':
-    ohlcv_file = str(OHLCV_DIR) + '/VN30F1M_5minutes.csv'
-    csv_ready_file = str(DATA_READY_DIR) + '/VN30F1M_5minutes_ready.csv'
+    ohlcv_file = str(OHLCV_DIR) + '/VN30F1M_5m.csv'
+    csv_ready_file = str(DATA_READY_DIR) + '/VN30F1M_5m_ready.csv'
     is_file = os.path.isfile(ohlcv_file)
     if is_file:
         ohlcv_data = pd.read_csv(ohlcv_file, index_col='Date', parse_dates=True)
