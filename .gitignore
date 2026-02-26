@@ -1,3 +1,4 @@
 .idea
 .ipynb_checkpoints
 /amibroker_all_data.txt
+**/__pycache__
