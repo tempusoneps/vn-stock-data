@@ -6,9 +6,9 @@ REQUIRED_COLUMNS = ["Open", "High", "Low", "Close", "Volume"]
 
 def clean_ohlcv(
     data: pd.DataFrame,
-    dropna: bool = True,
-    remove_negative: bool = True,
-    remove_duplicates: bool = True,
+    dropna: bool = False,
+    remove_negative: bool = False,
+    remove_duplicates: bool = False,
     sort_by_index: bool = True,
 ) -> pd.DataFrame:
     """
@@ -45,6 +45,10 @@ def clean_ohlcv(
     # ==============================
     if dropna:
         df = df.dropna(subset=REQUIRED_COLUMNS)
+    else:
+        findnan = df[df[REQUIRED_COLUMNS].isnull().any(axis=1)]
+        if len(findnan):
+            raise ValueError(f"There are {len(findnan)} rows with NaN values")
 
     # ==============================
     # 5️⃣ Remove negative values
@@ -54,25 +58,44 @@ def clean_ohlcv(
             (df[["Open", "High", "Low", "Close"]] >= 0).all(axis=1)
             & (df["Volume"] >= 0)
         ]
+    else:
+        findneg = df[(df[["Open", "High", "Low", "Close"]] < 0).any(axis=1) | (df["Volume"] < 0)]
+        if len(findneg):
+            raise ValueError(f"There are {len(findneg)} rows with negative values")
 
     # ==============================
     # 6️⃣ Fix logical OHLC errors
     # ==============================
-    df = df[
-        (df["High"] >= df[["Open", "Close", "Low"]].max(axis=1))
-        & (df["Low"] <= df[["Open", "Close", "High"]].min(axis=1))
+    error_df = df[
+        (df["High"] < df[["Open", "Close", "Low"]].max(axis=1))
+        | (df["Low"] > df[["Open", "Close", "High"]].min(axis=1))
     ]
+    if len(error_df) > 0:
+        raise ValueError(f"There are {len(error_df)} rows with logical OHLC errors")
 
     # ==============================
     # 7️⃣ Remove duplicate index (Date)
     # ==============================
     if remove_duplicates:
         df = df[~df.index.duplicated(keep="first")]
+    else:
+        finddup = df[df.index.duplicated(keep=False)]
+        if len(finddup):
+            raise ValueError(f"There are {len(finddup)} rows with duplicate index")
 
     # ==============================
     # 8️⃣ Sort by index
     # ==============================
     if sort_by_index:
         df = df.sort_index()
+
+    # Fix structure
+    # Ngay xua du lieu lich su co row cua 11h30 va 14h30, hien thi khong co 
+    # Can chuan hoa lai du lieu bang cach cong don du lieu cu, sau do xoa row 11h30 va 14h30
+    # Tuy nhien cach do phuc tap nen hien tai cu xoa 2 row nay di
+    tmp_df = df.copy()
+    tmp_df['time_int'] = tmp_df.index.hour * 100 + tmp_df.index.minute
+    df = tmp_df[(tmp_df['time_int'] != 1130) & (tmp_df['time_int'] != 1430)]
+    df = df.drop(columns=['time_int'])
 
     return df

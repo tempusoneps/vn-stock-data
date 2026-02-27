@@ -2,6 +2,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import os
 import pandas as pd
+from pathlib import Path
 import argparse
 from VN30F1M.transform import OHLCV_DIR, DATA_READY_DIR
 from VN30F1M.transform.func_validating import validate_ohlcv_dataset
@@ -26,11 +27,22 @@ if __name__ == '__main__':
         help="Convert all object columns to numeric"
     )
 
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Dry run, save file to current directory"
+    )
+
     args = parser.parse_args()
 
     ohlcv_file = str(OHLCV_DIR) + '/VN30F1M_5m.csv'
-    csv_ready_file = str(DATA_READY_DIR) + '/VN30F1M_5m_ready.csv'
-    csv_ready_file_num = str(DATA_READY_DIR) + '/VN30F1M_5m_numeric_ready.csv'
+    if args.dry_run:
+        CURRENT_DIR = Path(__file__).parent
+        csv_ready_file = str(CURRENT_DIR) + '/VN30F1M_5m_ready.csv'
+        csv_ready_file_num = str(CURRENT_DIR) + '/VN30F1M_5m_numeric_ready.csv'
+    else:
+        csv_ready_file = str(DATA_READY_DIR) + '/VN30F1M_5m_ready.csv'
+        csv_ready_file_num = str(DATA_READY_DIR) + '/VN30F1M_5m_numeric_ready.csv'
 
     if os.path.isfile(ohlcv_file):
 
