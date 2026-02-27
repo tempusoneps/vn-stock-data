@@ -31,6 +31,142 @@ features = [
 ]
 
 -----------------------------------------------------------------------------------------------------------------
+Ngoài 5 nhóm bạn đang có:
+
+regime
+
+volatility
+
+momentum
+
+mean reversion
+
+microstructure
+
+Mình suggest thêm 7 nhóm feature nâng cao mà nhiều retail algo không khai thác hết 👇
+
+1️⃣ 🧠 Market Structure Features
+
+Không phải indicator, mà là cấu trúc giá.
+
+🔹 Swing structure
+
+Higher High / Lower Low flag
+
+Distance tới swing high gần nhất
+
+Break of structure (BOS)
+
+🔹 Liquidity sweep detection
+
+High phá đỉnh nhưng close dưới đỉnh
+
+Low phá đáy nhưng close trên đáy
+
+Rất hữu ích M5 London session.
+
+2️⃣ ⏱️ Time & Seasonality Encoding (edge lớn trong FX)
+
+Forex không random theo thời gian.
+
+🔹 Cyclical time encoding
+sin_hour = sin(2π * hour / 24)
+cos_hour = cos(2π * hour / 24)
+🔹 Day-of-week effect
+
+Thứ 2 & thứ 6 behavior khác nhau.
+
+🔹 Minutes-from-session-open
+
+London open + 15 phút đầu rất khác.
+
+3️⃣ 📈 Multi-Timeframe Context (cực mạnh)
+
+Đây là thứ nhiều model thiếu.
+
+Ví dụ M5:
+
+H1 trend direction
+
+H1 ADX
+
+H1 RSI
+
+M15 structure bias
+
+Model sẽ học:
+
+Trade M5 mean reversion nhưng theo hướng H1 trend
+
+4️⃣ 🧮 Statistical Distribution Features
+🔹 Rolling skewness
+🔹 Rolling kurtosis
+🔹 Entropy (Shannon entropy)
+
+M5 chop thường có entropy cao.
+
+5️⃣ 🔄 Order Flow Proxy nâng cao
+
+Forex không có real orderbook, nhưng có thể proxy:
+
+🔹 Volume imbalance proxy
+
+Up volume vs down volume ratio.
+
+🔹 Delta candle proxy
+
+(close-open) * tick_volume
+
+🔹 Volume acceleration
+
+Volume_t − rolling_mean_volume
+
+6️⃣ 🧬 Non-linear Transform Features
+
+Model tree-based thích feature phi tuyến:
+
+RSI²
+
+ATR × ADX
+
+Zscore × Volume
+
+Momentum / Volatility ratio
+
+Ví dụ:
+
+momentum_vol_ratio = roc_3 / atr
+7️⃣ 🛑 Risk State Features (ít ai thêm nhưng cực quan trọng)
+
+Model cần biết khi nào KHÔNG trade.
+
+🔹 Spread filter
+
+spread / atr
+
+🔹 News proximity flag
+
+within 30m of high-impact event
+
+🔹 Drawdown state
+
+Equity drawdown hiện tại bao nhiêu %
+
+Bạn có thể feed equity state vào model → adaptive risk.
+
+8️⃣ 🔬 Meta Features (rất advanced)
+🔹 Prediction uncertainty
+
+Nếu dùng probabilistic model:
+
+entropy của prediction
+
+variance bootstrap
+
+🔹 Feature regime clustering
+
+Dùng k-means clustering để xác định market regime trước khi train model riêng cho từng regime.
+-----------------------------------------------------------------------------------------------------------------
 
 Đừng label kiểu:
 
