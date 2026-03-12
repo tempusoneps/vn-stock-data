@@ -16,7 +16,7 @@ COLUMN_SCHEMA = {
     "Volume": {"type": "float", "comment": "Khối lượng giao dịch"},
 
     # =========================
-    # DAILY DATA
+    # DAY DATA RESAMPLE
     # =========================
     "day_open": {"type": "float", "comment": "Giá mở cửa trong ngày"},
     "day_high": {"type": "float", "comment": "Giá cao nhất trong ngày"},
@@ -30,17 +30,20 @@ COLUMN_SCHEMA = {
     "hour": {"type": "int", "comment": "Giờ giao dịch"},
     "minute": {"type": "int", "comment": "Phút giao dịch"},
     "session_progress": {"type": "float", "comment": "Vị trí trong phiên"},
+    "week_day": {"type": "int", "comment": "Ngày trong tuần"},
 
     # =========================
     # CANDLESTICK FEATURES
     # =========================
-    "body": {"type": "float", "comment": "Thân nến (Close - Open)"},
+    "body": {"type": "float", "comment": "Thân nến abs(Close - Open)"},
     "upper_wick": {"type": "float", "comment": "Bóng nến trên"},
     "lower_wick": {"type": "float", "comment": "Bóng nến dưới"},
     "upper_wick_ratio": {"type": "float", "comment": "Tỷ lệ bóng nến trên"},
     "lower_wick_ratio": {"type": "float", "comment": "Tỷ lệ bóng nến dưới"},
     "candlestick_height": {"type": "float", "comment": "Chiều cao nến"},
     "ibs": {"type": "float", "comment": "Internal Bar Strength"},
+    "clv": {"type": "float", "comment": "Close Location Value ((Close-Low) - (High-Close)) / (High - Low)"},
+    "cbr": {"type": "float", "comment": "Candlestick Body Ratio (|Close - Open| / (High - Low))"},
     "candle_color": {"type": "string", "comment": "Màu nến (green/red/doji)"},
 
     # =========================
@@ -129,8 +132,8 @@ COLUMN_SCHEMA = {
     # =========================
     # CUSTOM INDICATORS
     # =========================
-    "custom_1": {"type": "float", "comment": "100 * (Close - day_close.shift(1)) / day_close.shift(1)"},
-    "custom_2": {"type": "float", "comment": "(Close - close.shift(49)) / (max_high_49bars - min_low_49bars)"},
+    "fea_g1_001": {"type": "float", "comment": "100 * (Close - day_close.shift(1)) / day_close.shift(1)"},
+    "fea_g1_002": {"type": "float", "comment": "(Close - close.shift(49)) / (max_high_49bars - min_low_49bars)"},
 
     # =========================
     # GROUPED FEATURES
