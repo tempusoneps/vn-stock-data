@@ -16,15 +16,6 @@ COLUMN_SCHEMA = {
     "Volume": {"name": "Trading Volume", "type": "float", "comment": "Khối lượng giao dịch"},
 
     # =========================
-    # DAY DATA RESAMPLE
-    # =========================
-    "day_open": {"name": "Daily Opening Price", "type": "float", "comment": "Giá mở cửa trong ngày"},
-    "day_high": {"name": "Daily Highest Price", "type": "float", "comment": "Giá cao nhất trong ngày"},
-    "day_low": {"name": "Daily Lowest Price", "type": "float", "comment": "Giá thấp nhất trong ngày"},
-    "day_close": {"name": "Daily Closing Price", "type": "float", "comment": "Giá đóng cửa trong ngày"},
-    "day_volume": {"name": "Daily Trading Volume", "type": "float", "comment": "Khối lượng giao dịch trong ngày"},
-
-    # =========================
     # TIME FEATURES
     # =========================
     "hour": {"name": "Trading Hour", "type": "int", "comment": "Giờ giao dịch"},
@@ -114,6 +105,13 @@ COLUMN_SCHEMA = {
     "is_bb_rejection": {"name": "Is Bollinger Bands Rejection", "type": "bool", "comment": "Tín hiệu từ chối Bollinger Bands"},
 
     # =========================
+    # CUSTOM INDICATORS
+    # =========================
+    "fea_001": {"name": "Feature 001", "type": "float", "comment": "100 * (Close - day_close.shift(1)) / day_close.shift(1)"},
+    "fea_002": {"name": "Feature 002", "type": "float", "comment": "(Close - close.shift(49)) / (max_high_49bars - min_low_49bars)"},
+    "fea_003": {"name": "Feature 003", "type": "float", "comment": "abs(EMA20 - EMA250) / ATR"},
+
+    # =========================
     # PREVIOUS (SHIFTED) DATA
     # =========================
     "prev_Open": {"name": "Previous Open", "type": "float", "comment": "Open phiên trước"},
@@ -130,13 +128,6 @@ COLUMN_SCHEMA = {
     "prev_ibs": {"name": "Previous IBS", "type": "float", "comment": "IBS phiên trước"},
 
     # =========================
-    # CUSTOM INDICATORS
-    # =========================
-    "fea_001": {"name": "Feature 001", "type": "float", "comment": "100 * (Close - day_close.shift(1)) / day_close.shift(1)"},
-    "fea_002": {"name": "Feature 002", "type": "float", "comment": "(Close - close.shift(49)) / (max_high_49bars - min_low_49bars)"},
-    "fea_003": {"name": "Feature 003", "type": "float", "comment": "abs(EMA20 - EMA250) / ATR"},
-
-    # =========================
     # GROUPED FEATURES
     # =========================
     "high_volume_group": {"name": "High and Volume Group", "type": "string", "comment": "Nhóm High và Volume"},
@@ -149,6 +140,15 @@ COLUMN_SCHEMA = {
     "high_rsi_group": {"name": "High and RSI Group", "type": "bool", "comment": "Nhóm High và RSI"},
     "close_position_group": {"name": "Close Position Group", "type": "string", "comment": "Nhóm vị trí Close"},
     "open_position_group": {"name": "Open Position Group", "type": "string", "comment": "Nhóm vị trí Open"},
+
+    # =========================
+    # DAY DATA RESAMPLE
+    # =========================
+    "day_open": {"name": "Daily Opening Price", "type": "float", "comment": "Giá mở cửa trong ngày"},
+    "day_high": {"name": "Daily Highest Price", "type": "float", "comment": "Giá cao nhất trong ngày"},
+    "day_low": {"name": "Daily Lowest Price", "type": "float", "comment": "Giá thấp nhất trong ngày"},
+    "day_close": {"name": "Daily Closing Price", "type": "float", "comment": "Giá đóng cửa trong ngày"},
+    "day_volume": {"name": "Daily Trading Volume", "type": "float", "comment": "Khối lượng giao dịch trong ngày"},
 
     # =========================
     # SIGNALS
